@@ -1,0 +1,10 @@
+.sites-runtime/
+.env
+__pycache__/
+*.pyc
+
+.venv/
+node_modules/
+.openai/
+*.log
+.env.*

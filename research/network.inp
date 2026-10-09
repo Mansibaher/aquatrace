@@ -1,0 +1,129 @@
+[TITLE]
+;; Two-Zone Residential Testbed (EPANET, pressure-only)
+;; - Zones in series along a main line (significant distance between zones)
+;; - Zone 1: 3 fixtures, equidistant (same pipe lengths) + sensors at all 3 fixtures
+;; - Zone 2: 3 fixtures, different distances (different pipe lengths) + sensors at all 3 fixtures
+;; Note: Coordinates are ONLY for visualization; hydraulics depend on pipe lengths.
+
+[JUNCTIONS]
+;;ID              Elevation   Demand      Pattern
+J_MAIN_IN         0           0           ;
+J_MAIN_MID        0           0           ;
+
+; Zone 1
+J_Z1_IN           0           0           ;
+Z1_S1             0           0.05        ;
+Z1_S2             0           0.10        ;
+Z1_S3             0           0.03        ;
+J_Z1_OUT          0           0           ;
+
+; Zone 2
+J_Z2_IN           0           0           ;
+Z2_S1             0           0.05        ;
+Z2_S2             0           0.10        ;
+Z2_S3             0           0.03        ;
+J_Z2_OUT          0           0           ;
+
+[RESERVOIRS]
+;;ID              Head        Pattern
+R_SUP             60          ;
+
+[TANKS]
+;;ID              Elevation   InitLevel   MinLevel    MaxLevel    Diameter    MinVol      VolCurve
+T_OUT             0           5           0           10          3           0           ;
+
+[PIPES]
+;;ID              Node1           Node2           Length  Diameter    Roughness   MinorLoss   Status
+P_SUP             R_SUP           J_MAIN_IN       50      50          130         0           OPEN
+
+; Main line to Zone 1 inlet manifold
+P_MAIN_IN_Z1      J_MAIN_IN       J_Z1_IN         40      50          130         0           OPEN
+
+; -----------------------
+; Zone 1 (EQUIDISTANT)
+; -----------------------
+P_Z1_F1_IN        J_Z1_IN         Z1_S1           20      25          130         0           OPEN
+P_Z1_F2_IN        J_Z1_IN         Z1_S2           20      25          130         0           OPEN
+P_Z1_F3_IN        J_Z1_IN         Z1_S3           20      25          130         0           OPEN
+
+P_Z1_F1_OUT       Z1_S1           J_Z1_OUT        15      25          130         0           OPEN
+P_Z1_F2_OUT       Z1_S2           J_Z1_OUT        15      25          130         0           OPEN
+P_Z1_F3_OUT       Z1_S3           J_Z1_OUT        15      25          130         0           OPEN
+
+; Zone 1 back to main mid node (increase length to represent significant distance)
+P_Z1_OUT_MAIN     J_Z1_OUT        J_MAIN_MID      200     50          130         0           OPEN
+
+; Main line to Zone 2 inlet manifold (increase length to represent significant distance)
+P_MAIN_MID_Z2     J_MAIN_MID      J_Z2_IN         200     50          130         0           OPEN
+
+; -----------------------
+; Zone 2 (NON-EQUIDISTANT)
+; -----------------------
+P_Z2_F1_IN        J_Z2_IN         Z2_S1           10      25          130         0           OPEN
+P_Z2_F2_IN        J_Z2_IN         Z2_S2           25      25          130         0           OPEN
+P_Z2_F3_IN        J_Z2_IN         Z2_S3           40      25          130         0           OPEN
+
+P_Z2_F1_OUT       Z2_S1           J_Z2_OUT        10      25          130         0           OPEN
+P_Z2_F2_OUT       Z2_S2           J_Z2_OUT        20      25          130         0           OPEN
+P_Z2_F3_OUT       Z2_S3           J_Z2_OUT        35      25          130         0           OPEN
+
+; Final outlet to tank
+P_Z2_OUT_TANK     J_Z2_OUT        T_OUT           80      50          130         0           OPEN
+
+[VALVES]
+;;ID              Node1       Node2       Diameter    Type    Setting     MinorLoss
+V_PRV_Z1          J_MAIN_IN   J_Z1_IN     50          PRV     30          0
+V_PRV_Z2          J_MAIN_MID  J_Z2_IN     50          PRV     30          0
+
+[EMITTERS]
+;;Junction        Coefficient
+; Set > 0 to inject a leak (example):
+; Z1_S2            0.01
+; Z2_S3            0.01
+
+[COORDINATES]
+;;Node            X           Y
+; --- Main line (wide spacing so zones are visually far apart) ---
+R_SUP             0           50
+J_MAIN_IN         100         50
+J_MAIN_MID        450         50
+T_OUT             900         50
+
+; --- Zone 1 (left, symmetric) ---
+J_Z1_IN           180         80
+Z1_S1             140         115
+Z1_S2             180         125
+Z1_S3             220         115
+J_Z1_OUT          180         65
+
+; --- Zone 2 (right, symmetric but with varied pipe lengths in data) ---
+J_Z2_IN           620         80
+Z2_S1             570         112
+Z2_S2             620         128
+Z2_S3             700         112
+J_Z2_OUT          620         65
+
+[OPTIONS]
+UNITS              LPS
+HEADLOSS           H-W
+SPECIFIC GRAVITY   1.0
+VISCOSITY          1.0
+TRIALS             40
+ACCURACY           0.001
+UNBALANCED         CONTINUE 10
+
+[TIMES]
+DURATION           0:00
+HYDRAULIC TIMESTEP 0:05
+REPORT TIMESTEP    0:05
+REPORT START       0:00
+START CLOCKTIME    00:00
+STATISTIC          NONE
+
+[REPORT]
+STATUS             YES
+SUMMARY            YES
+NODES              ALL
+LINKS              ALL
+
+[END]
